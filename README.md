@@ -1,2 +1,2 @@
-# Sprint_1
+# Sprint1
 Project Work
