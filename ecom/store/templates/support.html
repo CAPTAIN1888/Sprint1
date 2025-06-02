@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+
+<header class="bg-dark py-5">
+    <div class="container px-4 px-lg-5 my-5">
+        <div class="text-center text-white">
+            <h1 class="display-4 fw-bolder">Support</h1>
+            <p class="lead fw-normal text-white-50 mb-0">We are here to help you</p>
+        </div>
+    </div>
+</header>
+
+
+<br><br><br><br><br><br>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div style="border: 2px solid #191919; border-radius: 10px; padding: 20px; background: #f8f9fa; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+
+                <h3 style="text-align: center; color: #191919; margin-bottom: 20px;">Ask Support Assistant</h3>
+
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input 
+                        type="text" 
+                        id="support-query" 
+                        placeholder="Type your issue..." 
+                        style="flex: 1; padding: 10px 15px; font-size: 1rem; border: 1.5px solid #191919; border-radius: 25px; outline: none;"
+                        onkeydown="if(event.key === 'Enter') askSupport()"
+                    >
+                    <button 
+                        onclick="askSupport()" 
+                        style="background-color: #191919; color: white; border: none; padding: 10px 25px; border-radius: 25px; cursor: pointer; font-weight: 600; transition: background-color 0.3s;"
+                        onmouseover="this.style.backgroundColor='#191919'"
+                        onmouseout="this.style.backgroundColor='#191919'"
+                    >Submit</button>
+                </div>
+
+                <div 
+                    id="support-response" 
+                    style="min-height: 60px; padding: 15px; background: white; border-radius: 10px; border: 1px solid #ced4da; font-size: 1.1rem; color: #212529; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);"
+                ></div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% load static %}
+
+<script>
+  function getCSRFToken() {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, 10) === ('csrftoken=')) {
+          cookieValue = decodeURIComponent(cookie.substring(10));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function askSupport() {
+    const query = document.getElementById("support-query").value.trim();
+    if (!query) return;  // don't send empty queries
+
+    fetch("/support-voice/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCSRFToken()
+      },
+      body: JSON.stringify({ query: query })
+    })
+    .then(res => res.json())
+    .then(data => {
+      const responseText = data.reply || data.error || "No response.";
+      const responseDiv = document.getElementById("support-response");
+      
+      // Append new response (chatbot style)
+      responseDiv.innerText = responseText;
+
+      // Speak the reply
+      const utterance = new SpeechSynthesisUtterance(responseText);
+      utterance.lang = 'en-US';
+      window.speechSynthesis.speak(utterance);
+    })
+    .catch(err => {
+      console.error("Error:", err);
+      document.getElementById("support-response").innerText = "Something went wrong.";
+    });
+  }
+</script>
+<br><br><br><br><br><br>
+
+
+{% endblock %}
